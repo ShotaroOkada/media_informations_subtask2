@@ -1,18 +1,24 @@
-from PIL import Image
+import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 
-img = Image.open('terasawa.jpg')
-img = img.convert("L")
-img = img.resize((256, 256))
-img = np.array(img)
-w, h = img.shape
 
-for y in range(h):
-    for x in range(w):
-        if x > h/2:
-            img[y, x] = 255 - img[y, x]
-        else:
-            img[y, x] = img[y, x]/2
+def identity(image):
+    h, w = image.shape[:2]
+    src = np.array([[0.0, 0.0], [0.0, 1.0], [1.0, 0.0]], np.float32)
+    affine = cv2.getAffineTransform(src, src)
+    return cv2.warpAffine(image, affine, (w, h))
 
-img = Image.fromarray(img)
-img.show()
+
+def rotate(image, angle):
+    h, w = image.shape[:2]
+    affine = cv2.getRotationMatrix2D((0, 0), angle, 1.0)
+    return cv2.warpAffine(image, affine, (w, h))
+
+
+if __name__ == "__main__":
+    image = cv2.imread("terasawa.jpg")[:, :, ::-1]
+    converted = rotate(image, 20)
+    plt.imshow(converted)
+    plt.title("Identity")
+    plt.show()
