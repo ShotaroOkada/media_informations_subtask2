@@ -4,40 +4,46 @@ import numpy as np
 
 os.chdir('test')
 image_list = os.listdir('./')
-chists = np.zeros((3000, 64), np.float32)
-fnames = []
+data_num = 3000
+vector_num = 64
+rank_num = 6
+query_id = 373
+max_dist = 999
+color_histograms = np.zeros((data_num, vector_num), np.float32)
+file_names = []
 
-for i, fname in enumerate(image_list):
-    fnames.append(fname)
-    hist = np.zeros((4, 4, 4), np.float32)
-    print(str(i)+':'+fname)
-    img = cv.imread(fname)
+for i, file_name in enumerate(image_list):
+    file_names.append(file_name)
+    color_histogram = np.zeros((4, 4, 4), np.float32)
+    print(str(i) + ':' + file_name)
+    img = cv.imread(file_name)
     Height = img.shape[0]
     Width = img.shape[1]
+
     for y in range(Height):
         for x in range(Width):
-            b = img[y, x, 0]//64
-            g = img[y, x, 1]//64
-            r = img[y, x, 2]//64
-            hist[r, b, g] += 1
+            b = img[y, x, 0] // vector_num
+            g = img[y, x, 1] // vector_num
+            r = img[y, x, 2] // vector_num
+            color_histogram[r, b, g] += 1
 
-    hist = hist.reshape((1, 64))
-    hist = hist/(Height*Width)
-    chists[i, :] = hist[0, :]
+    color_histogram = color_histogram.reshape((1, vector_num))
+    color_histogram = color_histogram / (Height * Width)
+    color_histograms[i, :] = color_histogram[0, :]
 
-query_id = 373
-print('query: '+fnames[query_id])
-dists = np.ones((3000), np.float32)*999
+print('query: ' + file_names[query_id])
+dists = np.ones((data_num), np.float32) * max_dist
 
-for i in range(3000):
-    v = chists[query_id]-chists[i]
+for i in range(data_num):
+    v = color_histograms[query_id] - color_histograms[i]
     dists[i] = np.linalg.norm(v, ord=1)
-for r in range(6):
-    minval = np.min(dists)
-    minidx = np.argmin(dists)
-    #print('rank '+str(r)+': '+str(minidx)+' '+fnames[minidx]+', '+str(minval))
-    print('rank '+str(r)+': '+fnames[minidx]+', '+str(minval))
-    dists[minidx] = 999
+
+for r in range(rank_num):
+    min_value = np.min(dists)
+    min_index = np.argmin(dists)
+    print('rank ' + str(r) + ': ' +
+          file_names[min_index] + ', ' + str(min_value))
+    dists[min_index] = max_dist
 
 cv.waitKey(0)
 cv.destroyAllWindows()
