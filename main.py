@@ -6,8 +6,8 @@ os.chdir('test')
 image_list = os.listdir('./')
 data_num = 3000
 vector_num = 64
-rank_num = 6
-query_id = 373
+rank_num = 4
+query_ids = [100, 200, 300, 400, 500]
 max_dist = 999
 color_histograms = np.zeros((data_num, vector_num), np.float32)
 file_names = []
@@ -31,19 +31,20 @@ for i, file_name in enumerate(image_list):
     color_histogram = color_histogram / (Height * Width)
     color_histograms[i, :] = color_histogram[0, :]
 
-print('query: ' + file_names[query_id])
-dists = np.ones((data_num), np.float32) * max_dist
+for query_id in query_ids:
+    print('query: ' + file_names[query_id])
+    dists = np.ones((data_num), np.float32) * max_dist
 
-for i in range(data_num):
-    v = color_histograms[query_id] - color_histograms[i]
-    dists[i] = np.linalg.norm(v, ord=1)
+    for i in range(data_num):
+        v = color_histograms[query_id] - color_histograms[i]
+        dists[i] = np.linalg.norm(v, ord=1)
 
-for r in range(rank_num):
-    min_value = np.min(dists)
-    min_index = np.argmin(dists)
-    print('rank ' + str(r) + ': ' +
-          file_names[min_index] + ', ' + str(min_value))
-    dists[min_index] = max_dist
+    for r in range(rank_num):
+        min_value = np.min(dists)
+        min_index = np.argmin(dists)
+        print('rank ' + str(r) + ': ' +
+              file_names[min_index] + ', ' + str(min_value))
+        dists[min_index] = max_dist
 
 cv.waitKey(0)
 cv.destroyAllWindows()
